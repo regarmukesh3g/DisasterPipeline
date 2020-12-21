@@ -26,7 +26,7 @@ I have added a webapp as well so that user can make predictions from web UI.
 
 ### File Descriptions <a name='descriptions'>:
 There are 3 folders in this project. And README file is there for help.
-The directory app has all the webapp implementation. It is based on flask and standard structure is there for understanding.
+The directory webapp has all the webapp implementation. It is based on flask and standard structure is there for understanding.
 The data directory contains the data used for this project and used for saving data(database tables) in the flow.
 The models directory contains the files for training the model and classifier is saved into this as a pickle file.
 
