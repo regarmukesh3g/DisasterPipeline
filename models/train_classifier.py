@@ -1,22 +1,33 @@
-import sys
-import pandas as pd
-from sqlalchemy import create_engine
-import nltk
 import string
+import sys
+
 import joblib
-from nltk.tokenize import word_tokenize
-from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.model_selection import train_test_split
+import nltk
+import pandas as pd
 from nltk.corpus import stopwords
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
-from sklearn.multioutput import MultiOutputClassifier
+from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.pipeline import Pipeline
+from sqlalchemy import create_engine
+
 nltk.download(['wordnet', 'stopwords', 'punkt'])
 
 
 def load_data(database_filepath):
+    """
+    Load Data from database.
+    Args:
+        database_filepath: database path.
+
+    Returns:
+        Features, target feature, categories list
+    """
     engine = create_engine('sqlite:///{}'.format(database_filepath))
     df = pd.read_sql_table('disaster_messages', engine)
     X = df['message']
@@ -27,17 +38,29 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
-    text = text.lower()
+    """
+    Lemmatize, normalize and tokenize text.
+    Args:
+        text: Text/string/corpus.
+    Returns:
+        Tokenized text.
+    """
     for punctuation in string.punctuation:
         text = text.replace(punctuation, '')
 
     tokens = word_tokenize(text)
+    lemmed = [WordNetLemmatizer().lemmatize(w) for w in tokens]
     stop_words = stopwords.words("english")
-    words = [w for w in tokens if w not in stop_words]
+    words = [w.lower().strip() for w in lemmed if w not in stop_words]
     return words
 
 
 def build_model():
+    """
+    Build a model to be trained.
+    Returns:
+        Model for training.
+    """
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
@@ -45,7 +68,7 @@ def build_model():
     ])
     parameters = {
         'clf__estimator__n_estimators': [5, 10],
-        'tfidf__smooth_idf': [True, False]
+        'clf__estimator__min_samples_leaf': [1, 2]
     }
 
     cv = GridSearchCV(pipeline, param_grid=parameters)
@@ -53,6 +76,14 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """
+    Evaluate the metrics for model.
+    Args:
+        model: Classifier model object.
+        X_test: Input features.
+        Y_test: Target Feature.
+        category_names: Category names list.
+    """
     y_pred = model.predict(X_test)
     y_pred_df = pd.DataFrame(y_pred, columns=Y_test.columns)
     for col in category_names:
@@ -60,6 +91,12 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
+    """
+    Save model into a pickle file.
+    Args:
+        model: Model to be saved.
+        model_filepath: Filepath.
+    """
     joblib.dump(model, model_filepath)
 
 

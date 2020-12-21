@@ -1,6 +1,8 @@
+
 import sys
 import pandas as pd
 from sqlalchemy import create_engine
+
 
 def load_data(messages_filepath, categories_filepath):
     """
@@ -50,21 +52,22 @@ def clean_data(df):
 
     return df
 
+
 def save_data(df, database_filename):
     """
-
+    Save the data into database.
     Args:
         df: dataframe
-        database_filename: filename where database needs to be dave
-
-    Returns:
-
+        database_filename: filename where database needs to be saved.
     """
     engine = create_engine('sqlite:///{}'.format(database_filename))
     df.to_sql('disaster_messages', engine, index=False)
 
 
 def main():
+    """
+    Main flow.
+    """
     if len(sys.argv) == 4:
 
         messages_filepath, categories_filepath, database_filepath = sys.argv[1:]
@@ -75,18 +78,18 @@ def main():
 
         print('Cleaning data...')
         df = clean_data(df)
-        
+
         print('Saving data...\n    DATABASE: {}'.format(database_filepath))
         save_data(df, database_filepath)
-        
+
         print('Cleaned data saved to database!')
-    
+
     else:
-        print('Please provide the filepaths of the messages and categories '\
-              'datasets as the first and second argument respectively, as '\
-              'well as the filepath of the database to save the cleaned data '\
-              'to as the third argument. \n\nExample: python process_data.py '\
-              'disaster_messages.csv disaster_categories.csv '\
+        print('Please provide the filepaths of the messages and categories ' \
+              'datasets as the first and second argument respectively, as ' \
+              'well as the filepath of the database to save the cleaned data ' \
+              'to as the third argument. \n\nExample: python process_data.py ' \
+              'disaster_messages.csv disaster_categories.csv ' \
               'DisasterResponse.db')
 
 
