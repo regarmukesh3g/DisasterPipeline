@@ -46,6 +46,8 @@ def index():
     col_sum = category_df.sum()
     column_names = list(col_sum.index)
     column_counts = col_sum.values
+    for col in df.columns:
+        print(df[col].value_counts())
     graphs = [
         {
             'data': [

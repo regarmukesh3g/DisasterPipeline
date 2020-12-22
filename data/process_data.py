@@ -41,7 +41,8 @@ def clean_data(df):
         # set each value to be the last character of the string
         categories[column] = categories[column].apply(lambda x: x.split('-')[1])
         # convert column from string to numeric
-        categories[column] = categories[column].apply(int)
+        categories[column] = categories[column].apply(lambda x: int(x)>0 )
+        categories[column].convert_dtypes()
 
     # drop the original categories column from `df`
     df.drop(columns=['categories'], inplace=True)
@@ -61,7 +62,7 @@ def save_data(df, database_filename):
         database_filename: filename where database needs to be saved.
     """
     engine = create_engine('sqlite:///{}'.format(database_filename))
-    df.to_sql('disaster_messages', engine, index=False)
+    df.to_sql('disaster_messages', engine, index=False, if_exists='replace')
 
 
 def main():

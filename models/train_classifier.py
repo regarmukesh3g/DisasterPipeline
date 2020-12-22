@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.pipeline import Pipeline
 from sqlalchemy import create_engine
-
+from sklearn.ensemble import AdaBoostClassifier
 nltk.download(['wordnet', 'stopwords', 'punkt'])
 
 
@@ -30,6 +30,8 @@ def load_data(database_filepath):
     """
     engine = create_engine('sqlite:///{}'.format(database_filepath))
     df = pd.read_sql_table('disaster_messages', engine)
+
+    print(df['related'].value_counts())
     X = df['message']
 
     Y = df.drop(columns=['message', 'id', 'original', 'genre'])
@@ -64,12 +66,11 @@ def build_model():
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
-        ('clf', MultiOutputClassifier(estimator=RandomForestClassifier()))
+        ('clf', MultiOutputClassifier(estimator=AdaBoostClassifier()))
     ])
     parameters = {
-        'clf__estimator__n_estimators': [5, 10]
+        'clf__estimator__learning_rate': [0.1, 0.5, 1.0]
     }
-
     cv = GridSearchCV(pipeline, param_grid=parameters)
     return cv
 
