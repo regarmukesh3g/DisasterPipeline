@@ -1,23 +1,37 @@
-#!/usr/bin/env python
 import json
-import joblib
-import pandas as pd
 import plotly
-from flask import render_template, request
-from plotly.graph_objs import Pie
-from sqlalchemy import create_engine
+import pandas as pd
 
-from webapp.run import app
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
+
+from flask import Flask
+from flask import render_template, request, jsonify
+from plotly.graph_objs import Pie
+import joblib
+from sqlalchemy import create_engine
+from webapp import app
+
+
+
+def tokenize(text):
+    tokens = word_tokenize(text)
+    lemmatizer = WordNetLemmatizer()
+
+    clean_tokens = []
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
+        clean_tokens.append(clean_tok)
+
+    return clean_tokens
+
 
 # load data
-def get_df():
-    engine = create_engine('sqlite:///../data/DisasterResponse.db')
-    df = pd.read_sql_table('disaster_messages', engine)
-    return df
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('disaster_messages', engine)
 
-def get_model():
-    model = joblib.load("../models/classifier.pkl")
-    return model
+# load model
+model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -28,7 +42,6 @@ def index():
     Homepage of the webapp.
     """
     # extract data needed for visuals
-    df = get_df()
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
 
@@ -70,8 +83,6 @@ def predict():
     """
     # save user input in query
     query = request.args.get('query', '')
-
-    model = get_model()
     # use model to predict classification for query
     classification_labels = model.predict([query])[0]
     classification_results = dict(zip(df.columns[4:], classification_labels))

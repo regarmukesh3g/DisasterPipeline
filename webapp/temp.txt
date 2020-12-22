@@ -1,3 +1,9 @@
+from nltk import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+import string
+from webapp import app
+
 import json
 import plotly
 import pandas as pd
@@ -6,12 +12,11 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
 from flask import Flask
-from flask import render_template, request
-from plotly.graph_objs import Bar, Pie
+from flask import render_template, request, jsonify
+from plotly.graph_objs import Pie
 import joblib
 from sqlalchemy import create_engine
-
-app = Flask(__name__)
+from webapp import app
 
 
 def tokenize(text):
@@ -24,7 +29,6 @@ def tokenize(text):
         clean_tokens.append(clean_tok)
 
     return clean_tokens
-
 
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
@@ -45,12 +49,7 @@ def index():
     # extract data needed for visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    category_df = df.drop(columns=['message', 'id', 'original', 'genre'])
-    col_sum = category_df.sum()
-    column_names = list(col_sum.index)
-    print(column_names)
-    column_counts = col_sum.values
-    print(column_counts)
+
     graphs = [
         {
             'data': [
@@ -66,23 +65,6 @@ def index():
                 },
                 'xaxis': {
                     'title': "Genre"
-                }
-            }
-        },
-        {
-            'data': [
-                Bar(
-                    x=column_names, y=column_counts
-                )
-            ],
-
-            'layout': {
-                'title': 'Message Categories',
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Category"
                 }
             }
         }
@@ -117,8 +99,11 @@ def predict():
         classification_result=classification_results
     )
 
-
 def main():
+    """
+    Main flow.
+    """
+    tokenize("welcome to the world.")
     app.run(host='0.0.0.0', port=3001, debug=True)
 
 
