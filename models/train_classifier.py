@@ -66,10 +66,12 @@ def build_model():
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
-        ('clf', MultiOutputClassifier(estimator=AdaBoostClassifier()))
+        ('clf', MultiOutputClassifier(estimator=RandomForestClassifier()))
     ])
+    print(pipeline.get_params())
     parameters = {
-        'clf__estimator__learning_rate': [0.1, 0.5, 1.0]
+        'clf__estimator__n_estimators': [10, 15, 20],
+        'vect__min_df': [1, 2]
     }
     cv = GridSearchCV(pipeline, param_grid=parameters)
     return cv
@@ -87,7 +89,10 @@ def evaluate_model(model, X_test, Y_test, category_names):
     y_pred = model.predict(X_test)
     y_pred_df = pd.DataFrame(y_pred, columns=Y_test.columns)
     for col in category_names:
+        print("========================================================================")
+        print("Evaluating Category: {}".format(col))
         print(classification_report(Y_test[col], y_pred_df[col], labels=[0, 1]))
+        print("=========================================================================\n\n")
 
 
 def save_model(model, model_filepath):
